@@ -1,11 +1,16 @@
-<script setup></script>
-
 <template>
-  <h1>You did it!</h1>
-  <p>
-    Visit <a href="https://vuejs.org/" target="_blank" rel="noopener">vuejs.org</a> to read the
-    documentation
-  </p>
+  <!-- importamos el componente del header para mostrarlo en app.vue -->
+  <Header />
 </template>
 
-<style scoped></style>
+<!-- esta etiqueta ayuda a que no existan espacios estre elementos (quita la margen que por defecto tiene el body) y asi el header se vea pegado a la parte superior de la pagina   -->
+<style>
+body {
+  margin: 0;
+}
+</style>
+
+<script setup>
+//  Importamos el componente del header para mostrarlo en app.vue
+import Header from './components/Header.vue'
+</script>
