@@ -1,4 +1,5 @@
 <template>
+<<<<<<< HEAD
   <!-- importamos el componente del header para mostrarlo en app.vue -->
   <Header />
 </template>
@@ -14,3 +15,11 @@ body {
 //  Importamos el componente del header para mostrarlo en app.vue
 import Header from './components/Header.vue'
 </script>
+=======
+  <Home />
+</template>
+
+<script setup>
+import Home from './components/Home.vue'
+</script>
+>>>>>>> f3714d9c3e8535c943abbb547a89cbe3ddcee0d9
