@@ -10,22 +10,22 @@ import { registerValidators, loginValidators } from "../middlewares/validators.j
 
 const router = express.Router();
 
-/**
- * POST /api/auth/register
- * Body: { name, email, password }
- */
+// /**
+//  * POST /api/auth/register
+//  * Body: { name, email, password }
+//  */
 router.post("/register", registerValidators, register);
 
-/**
- * POST /api/auth/login
- * Body: { email, password }
- */
+// /**
+//  * POST /api/auth/login
+//  * Body: { email, password }
+//  */
 router.post("/login", loginValidators, login);
 
-/**
- * GET /api/auth/users
- * Lista usuarios (sin password). Solo para pruebas.
- */
+// /**
+//  * GET /api/auth/users
+//  * Lista usuarios (sin password). Solo para pruebas.
+//  */
 router.get("/users", listUsers);
 
 export default router;
