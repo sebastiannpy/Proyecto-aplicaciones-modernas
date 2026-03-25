@@ -1,8 +1,8 @@
 // ¿Qué hace cada cosa?
 // bcrypt → sirve para encriptar contraseñas (hash) y compararlas.
 // findUserByEmail → busca un usuario por su email.
-// createUser → crea un usuario nuevo y lo guarda en la base de datos.
-// getAllUsers → obtiene todos los usuarios.
+// createUser → crea un usuario nuevo y lo guarda en el JSON.
+// getAllUsers → obtiene todos los usuarios del archivo JSON.
 // SALT_ROUNDS = 10 → nivel de seguridad para bcrypt (estándar).
 
 import bcrypt from "bcrypt";
@@ -30,12 +30,7 @@ export async function register(req, res, next) {
     // Devuelve el resto del objeto (id, name, email, createdAt)
     // Código 201 = "Creado"
     const { passwordHash: _, ...userWithoutPassword } = user;
-
-    res.status(201).json({
-      message: "Usuario registrado",
-      user: userWithoutPassword
-    });
-
+    res.status(201).json({ message: "Usuario registrado", user: userWithoutPassword });
   } catch (err) {
     next(err);
   }
@@ -47,9 +42,8 @@ export async function register(req, res, next) {
 // Si no, devuelve error 401 (no autorizado)
 export async function login(req, res, next) {
   try {
-
     const { email, password } = req.body;
-
+    
     // Buscar usuario por email
     const user = await findUserByEmail(email);
     if (!user) return res.status(401).json({ message: "Credenciales inválidas" });
@@ -62,12 +56,7 @@ export async function login(req, res, next) {
     // Extrae passwordHash
     // Devuelve el resto del objeto (id, name, email, createdAt)
     const { passwordHash: _, ...userSafe } = user;
-
-    res.json({
-      message: "Login exitoso",
-      user: userSafe
-    });
-
+    res.json({ message: "Login exitoso", user: userSafe });
   } catch (err) {
     next(err);
   }
@@ -76,13 +65,9 @@ export async function login(req, res, next) {
 // Endpoint opcional para listar usuarios (solo para pruebas)
 export async function listUsers(req, res, next) {
   try {
-
     const users = await getAllUsers();
-
     const safe = users.map(({ passwordHash, ...rest }) => rest);
-
     res.json(safe);
-
   } catch (err) {
     next(err);
   }

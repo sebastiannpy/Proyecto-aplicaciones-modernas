@@ -1,174 +1,137 @@
-import db from "../database/connection.js";
+// filtrar productos por categoria
+// filtrar productos por precio
+// filtrar productos por nombre (busqueda parcial)
+// ordenar productos por precio (ascendente o descendente)
+// ordenar productos por nombre (A-Z o Z-A)
 
-/*
-FILTRAR PRODUCTOS
-- por category
-- por price
-- por nombre (busqueda parcial)
-ORDENAR
-- por price
-- por nombre
-*/
+import supabase from "../data/supabaseClient.js";
 
-export async function getAllProducts({ category, minPrice, maxPrice, name, sortBy, order } = {}) {
 
-  return new Promise((resolve, reject) => {
-
-    let query = "SELECT * FROM productos WHERE 1=1";
-    const params = [];
-
-    // filtro por categoria
-    if (category) {
-      query += " AND category = ?";
-      params.push(category);
+export async function getAllProducts() {
+    const {data, error} = await supabase
+    .from("products")
+    .select("*");
+    if (error) throw error;{
+        return data;
     }
-
-    // precio minimo
-    if (minPrice) {
-      query += " AND price >= ?";
-      params.push(minPrice);
-    }
-
-    // precio maximo
-    if (maxPrice) {
-      query += " AND price <= ?";
-      params.push(maxPrice);
-    }
-
-    // busqueda parcial por nombre
-    if (name) {
-      query += " AND nombre LIKE ?";
-      params.push(`%${name}%`);
-    }
-
-    // ordenar
-    if (sortBy) {
-
-      const validSort = ["price", "nombre"];
-      const validOrder = ["ASC", "DESC"];
-
-      if (validSort.includes(sortBy)) {
-
-        const direction = validOrder.includes(order?.toUpperCase())
-          ? order.toUpperCase()
-          : "ASC";
-
-        query += ` ORDER BY ${sortBy} ${direction}`;
-      }
-    }
-
-    db.query(query, params, (err, results) => {
-
-      if (err) {
-        reject(err);
-      } else {
-        resolve(results);
-      }
-
-    });
-
-  });
-
 }
 
 
-// CREAR PRODUCTO
-export async function createProduct({ name, price, category }) {
+// crea un nuevo producto con un id y se organizan a medida que se van creando
+export async function CreateProduct({ name, price, category, brand, stock }) {
+    const {data, error} = await supabase
+    .from("products")
+    .insert({ name, price, category, brand, stock })
+    .select("*")
+    if (error) throw error; 
+        return data[0];
+}
 
-  return new Promise((resolve, reject) => {
-
-    const query = `
-      INSERT INTO productos (nombre, price, category)
-      VALUES (?, ?, ?)
-    `;
-
-    db.query(query, [name, price, category], (err, result) => {
-
-      if (err) {
-        reject(err);
-      } else {
-
-        resolve({
-          id: result.insertId,
-          name,
-          price,
-          category
-        });
-
-      }
-
-    });
-
-  });
-
+// actualizar un producto por id
+export async function updateProductById(id, { name, price, category, brand, stock }) {
+    const { data, error } = await supabase
+        .from("products")
+        .update({ name, price, category, brand, stock })
+        .eq("id", id)
+        .select("*")
+    if (error) throw error;
+    return data;
 }
 
 
-// BUSCAR PRODUCTO POR ID
+
+// productos con stock menor o igual a 5
+export async function getLowStockProducts() {
+    const { data, error } = await supabase
+        .from("products")
+        .select("*")
+        .lte("stock", 5);
+
+    if (error) throw error;
+
+    return data;
+}
+
+export async function sortProductsByName(order = "asc") {
+    const { data, error } = await supabase
+        .from("products")
+        .select("*")
+        .order("name", { ascending: order === "asc" });
+
+    if (error) throw error;
+
+    return data;
+}
+
+
+export async function sortProductsByPrice(order = "desc") {
+    const { data, error } = await supabase
+        .from("products")
+        .select("*")
+        .order("price", { ascending: order === "asc" });
+
+    if (error) throw error;
+
+    return data;
+}
+
+export async function searchProductsByName(name) {
+    const { data, error } = await supabase
+        .from("products")
+        .select("*")
+        .ilike("name", `%${name}%`);
+
+    if (error) throw error;
+
+    return data;
+}
+
+export async function filterByCategory(category) {
+    const { data, error } = await supabase
+        .from("products")
+        .select("*")
+        .eq("category", category);
+
+    if (error) throw error;
+
+    return data;
+}
+
+export async function filterByPrice(min, max) {
+    const { data, error } = await supabase
+        .from("products")
+        .select("*")
+        .gte("price", min)
+        .lte("price", max);
+
+    if (error) throw error;
+
+    return data;
+}
+
+
+// busqueda por id exacto
 export async function findProductById(id) {
+    const { data, error } = await supabase
+        .from("products")
+        .select("*")
+        .eq("id", id)
+        .single();
 
-  return new Promise((resolve, reject) => {
+    if (error) return null;
 
-    const query = "SELECT * FROM productos WHERE id = ?";
+    return data;
+}
 
-    db.query(query, [id], (err, results) => {
+export async function deleteProductById(id) {
+    const { error } = await supabase
+        .from("products")
+        .delete()
+        .eq("id", id);
 
-      if (err) {
-        reject(err);
-      } else {
-        resolve(results[0] || null);
-      }
+    if (error) throw error;
 
-    });
-
-  });
-
+    return { message: "Producto eliminado" };
 }
 
 
-// ACTUALIZAR PRODUCTO
-export async function updateProduct(id, { name, price, category }) {
-
-  return new Promise((resolve, reject) => {
-
-    const query = `
-      UPDATE productos
-      SET nombre = ?, price = ?, category = ?
-      WHERE id = ?
-    `;
-
-    db.query(query, [name, price, category, id], (err, result) => {
-
-      if (err) {
-        reject(err);
-      } else {
-        resolve(result);
-      }
-
-    });
-
-  });
-
-}
-
-
-// ELIMINAR PRODUCTO
-export async function deleteProduct(id) {
-
-  return new Promise((resolve, reject) => {
-
-    const query = "DELETE FROM productos WHERE id = ?";
-
-    db.query(query, [id], (err, result) => {
-
-      if (err) {
-        reject(err);
-      } else {
-        resolve(result);
-      }
-
-    });
-
-  });
-
-}

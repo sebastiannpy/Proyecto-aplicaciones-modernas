@@ -1,14 +1,17 @@
 import cors from "cors";
 import express from "express";
 import authRoutes from "./routes/auth.routes.js";
+import fetch from "node-fetch";
 import productRoutes from "./routes/product.routes.js";  
+
+global.fetch = fetch;
 
 const app = express();
 const PORT = process.env.PORT || 3000;
 
 // ✅ CORS PRIMERO (ANTES DE TODO)
 app.use(cors({
-  origin: "http://localhost:5173",
+  origin: "*", // Permitir todas las fuentes (ajustar según necesidades)
   methods: ["GET", "POST"],
   credentials: true
 }));
