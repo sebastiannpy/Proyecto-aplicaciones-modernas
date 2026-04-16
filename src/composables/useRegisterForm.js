@@ -25,6 +25,7 @@ import { useRouter } from 'vue-router'
 
 // ── Constantes ────────────────────────────────────────────────────────────────
 // SCRUM-88: Cambia esta URL por la del endpoint real de tu backend
+//const API_URL = 'https://api.serviteka.com/auth/register'
 const API_URL = 'http://localhost:3000/api/auth/register'
 
 // SCRUM-85: Requisitos mínimos de contraseña
