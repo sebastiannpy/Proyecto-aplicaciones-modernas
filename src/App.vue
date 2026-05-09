@@ -412,7 +412,7 @@
       <div class="acciones">
 
         <button class="btnGrande btnHeader btnUsuario btnZonaCuenta" @click="menuUser = !menuUser">
-          <span>Mi cuenta</span>
+          <span>👤</span>
         </button>
 
         <div v-if="menuUser" class="menuUser">
@@ -448,12 +448,12 @@
         </button>
 
         <button class="btnGrande btnHeader btnNoti btnZonaCuenta" @click="toggleNotificaciones">
-          Notificaciones
+          🔔
           <span v-if="noLeidasCount" class="badgeNoti">{{ noLeidasCount }}</span>
         </button>
 
         <button class="btnGrande btnHeader btnZonaCuenta" @click="abrirFavoritos">
-          Favoritos ({{ favoritosIds.length }})
+          ⭐ ({{ favoritosIds.length }})
         </button>
         <button class="btnGrande btnHeader btnZonaCuenta" :disabled="comparacionIds.length < 2" @click="abrirComparacion">
           Comparar ({{ comparacionIds.length }})
@@ -467,7 +467,7 @@
         </button>
 
         <button class="btnGrande btnHeader btnCarritoHeader btnZonaCompra" @click="irAVista('carrito')">
-          Carrito ({{ totalItems }})
+          🛒 ({{ totalItems }})
         </button>
 
       </div>
@@ -528,6 +528,7 @@
 
       <aside class="menu" v-if="showM" ref="panelCategorias">
         <h3>Categorías</h3>
+        <br>
         <div class="filtrosPanel" v-if="panelLateralActivo === 'filtros'">
           <input v-model="filtroNombre" type="text" placeholder="Buscar por nombre" />
           <select v-model="filtroCategoria">
