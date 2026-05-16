@@ -43,6 +43,7 @@ export async function ensureAdminUser() {
       app_metadata: { ...(existing.app_metadata || {}), role: "admin" },
       user_metadata: { ...(existing.user_metadata || {}), name: adminName },
       password: adminPassword,
+      email_confirm: true,
     });
 
     if (error) throw error;

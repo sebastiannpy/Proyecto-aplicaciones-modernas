@@ -471,23 +471,9 @@
           <button
             v-if="isAdmin"
             class="btnGrande opcion opcionPerfil"
-            @click="abrirDashboardAdmin"
-          >
-            <span>Dashboard admin</span>
-          </button>
-          <button
-            v-if="isAdmin"
-            class="btnGrande opcion opcionPerfil"
             @click="abrirPanelAdmin"
           >
             <span>Panel admin</span>
-          </button>
-          <button
-            v-if="isAdmin"
-            class="btnGrande opcion opcionPerfil"
-            @click="abrirUsuariosAdmin"
-          >
-            <span>Usuarios admin</span>
           </button>
           <button class="btnGrande opcion opcionPerfil" @click="abrirPedidosDesdePerfil">
             <span>Mis pedidos</span>
