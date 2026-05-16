@@ -42,10 +42,11 @@ export async function ensureAdminUser() {
     const { error } = await adminClient.auth.admin.updateUserById(existing.id, {
       app_metadata: { ...(existing.app_metadata || {}), role: "admin" },
       user_metadata: { ...(existing.user_metadata || {}), name: adminName },
+      password: adminPassword,
     });
 
     if (error) throw error;
-    console.log(`[admin-bootstrap] Usuario admin actualizado: ${adminEmail}`);
+    console.log(`[admin-bootstrap] Usuario admin actualizado (rol/meta/password): ${adminEmail}`);
     return;
   }
 
