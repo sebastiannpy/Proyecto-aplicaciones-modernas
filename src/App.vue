@@ -264,6 +264,10 @@
   <div v-else-if="vista === 'adminProductos'" class="auth">
     <div class="cardAuth adminCard">
       <h2>PANEL ADMIN - PRODUCTOS</h2>
+      <div class="adminNav">
+        <button class="btnSecundario" @click="abrirDashboardAdmin">Ir a dashboard</button>
+        <button class="btnSecundario" @click="abrirUsuariosAdmin">Gestionar usuarios</button>
+      </div>
 
       <button
         class="btnSecundario"
@@ -371,6 +375,10 @@
   <div v-else-if="vista === 'adminDashboard'" class="auth">
     <div class="cardAuth adminCard">
       <h2>DASHBOARD ADMIN</h2>
+      <div class="adminNav">
+        <button class="btnSecundario" @click="abrirPanelAdmin">Panel productos</button>
+        <button class="btnSecundario" @click="abrirUsuariosAdmin">Gestionar usuarios</button>
+      </div>
       <div class="adminStatsGrid">
         <div class="adminStatCard">
           <small>Productos</small>
@@ -393,6 +401,50 @@
         <h3>Top productos por stock</h3>
         <div class="chipsRecomendados">
           <button v-for="p in masVendidos" :key="`dash-${p.id}`">{{ p.nombre }} ({{ p.stock }})</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div v-else-if="vista === 'adminUsuarios'" class="auth">
+    <div class="cardAuth adminCard">
+      <h2>PANEL ADMIN - USUARIOS</h2>
+      <div class="adminNav">
+        <button class="btnSecundario" @click="abrirDashboardAdmin">Ir a dashboard</button>
+        <button class="btnSecundario" @click="abrirPanelAdmin">Panel productos</button>
+      </div>
+      <div class="adminForm">
+        <input v-model="buscarUsuarioAdmin" placeholder="Buscar por nombre o correo">
+        <button class="btnSecundario" :disabled="cargandoUsuariosAdmin" @click="cargarUsuariosAdmin">
+          {{ cargandoUsuariosAdmin ? 'Actualizando...' : 'Actualizar usuarios' }}
+        </button>
+      </div>
+
+      <div class="adminLista">
+        <h3>Usuarios registrados</h3>
+        <div v-if="cargandoUsuariosAdmin">Cargando usuarios...</div>
+        <div v-else-if="!usuariosAdminFiltrados.length" class="adminVacio">No se encontraron usuarios.</div>
+        <div v-else class="tablaAdminWrap">
+          <table class="tablaAdmin">
+            <thead>
+              <tr>
+                <th>Nombre</th>
+                <th>Correo</th>
+                <th>Fecha</th>
+                <th></th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr v-for="u in usuariosAdminFiltrados" :key="u.id">
+                <td>{{ u.name || '—' }}</td>
+                <td>{{ u.email || '—' }}</td>
+                <td>{{ formatFecha(u.created_at) }}</td>
+                <td class="accionesAdmin">
+                  <button class="btnEliminarAdmin" @click="eliminarUsuarioAdmin(u)">Eliminar</button>
+                </td>
+              </tr>
+            </tbody>
+          </table>
         </div>
       </div>
     </div>
@@ -429,6 +481,13 @@
             @click="abrirPanelAdmin"
           >
             <span>Panel admin</span>
+          </button>
+          <button
+            v-if="isAdmin"
+            class="btnGrande opcion opcionPerfil"
+            @click="abrirUsuariosAdmin"
+          >
+            <span>Usuarios admin</span>
           </button>
           <button class="btnGrande opcion opcionPerfil" @click="abrirPedidosDesdePerfil">
             <span>Mis pedidos</span>
@@ -1031,6 +1090,12 @@
     width: 700px;
     max-width: 94vw;
     align-items: stretch;
+  }
+  .adminNav {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+    margin-bottom: 8px;
   }
   .adminForm {
     width: 100%;
@@ -2392,6 +2457,9 @@ export default {
       ejecutandoRefreshImagenes: false,
       subiendoImagenAdmin: false,
       editandoProductoId: null,
+      usuariosAdmin: [],
+      cargandoUsuariosAdmin: false,
+      buscarUsuarioAdmin: '',
       adminProducto: {
         name: '',
         price: null,
@@ -2515,6 +2583,14 @@ export default {
         totalPedidos: this.pedidos.length,
         ventasEstimadas: this.pedidos.reduce((acc, p) => acc + Number(p.total_amount || 0), 0),
       }
+    },
+    usuariosAdminFiltrados() {
+      const q = (this.buscarUsuarioAdmin || '').toLowerCase().trim()
+      if (!q) return this.usuariosAdmin
+      return this.usuariosAdmin.filter((u) =>
+        (u.name || '').toLowerCase().includes(q) ||
+        (u.email || '').toLowerCase().includes(q)
+      )
     }
   },
 
@@ -2537,6 +2613,7 @@ export default {
         pedidos: '/pedidos',
         adminProductos: '/admin/productos',
         adminDashboard: '/admin/dashboard',
+        adminUsuarios: '/admin/usuarios',
       }
       return map[vista] || '/'
     },
@@ -2552,6 +2629,7 @@ export default {
         '/pedidos': 'pedidos',
         '/admin/productos': 'adminProductos',
         '/admin/dashboard': 'adminDashboard',
+        '/admin/usuarios': 'adminUsuarios',
       }
       return map[pathname] || 'inicio'
     },
@@ -2610,6 +2688,13 @@ export default {
     abrirDashboardAdmin() {
       this.menuUser = false
       this.vista = 'adminDashboard'
+    },
+    async abrirUsuariosAdmin() {
+      this.menuUser = false
+      this.vista = 'adminUsuarios'
+      if (!this.usuariosAdmin.length) {
+        await this.cargarUsuariosAdmin()
+      }
     },
     favoritosStorageKey() {
       const base = this.carritoCacheUserId || 'guest'
@@ -2755,6 +2840,38 @@ export default {
     abrirPanelAdmin() {
       this.menuUser = false
       this.vista = 'adminProductos'
+    },
+    async cargarUsuariosAdmin() {
+      if (!this.isAdmin) return
+      this.cargandoUsuariosAdmin = true
+      try {
+        const { data, error } = await supabase
+          .from('usuarios')
+          .select('id, name, email, created_at')
+          .order('created_at', { ascending: false })
+        if (error) throw error
+        this.usuariosAdmin = data || []
+      } catch (err) {
+        this.mostrar(err.message || 'No se pudieron cargar los usuarios', 'red')
+      } finally {
+        this.cargandoUsuariosAdmin = false
+      }
+    },
+    async eliminarUsuarioAdmin(usuario) {
+      if (!this.isAdmin || !usuario?.id) return
+      const ok = window.confirm(`¿Eliminar al usuario "${usuario.email || usuario.name}"?`)
+      if (!ok) return
+      try {
+        const { error } = await supabase
+          .from('usuarios')
+          .delete()
+          .eq('id', usuario.id)
+        if (error) throw error
+        this.usuariosAdmin = this.usuariosAdmin.filter((u) => u.id !== usuario.id)
+        this.mostrar('Usuario eliminado correctamente', 'green')
+      } catch (err) {
+        this.mostrar(err.message || 'No se pudo eliminar el usuario', 'red')
+      }
     },
     limpiarFormAdminProducto() {
       this.editandoProductoId = null
