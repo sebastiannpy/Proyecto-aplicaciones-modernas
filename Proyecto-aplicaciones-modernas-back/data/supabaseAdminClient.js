@@ -1,7 +1,7 @@
 import { createClient } from "@supabase/supabase-js";
 
-const supabaseUrl = process.env.SUPABASE_URL;
-const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+const supabaseUrl = 'https://amcripliptxcqnipnler.supabase.co';
+const serviceRoleKey = 'sb_secret_zqBNBtF09T2fTqpf7MDwug_CFdt3384';
 
 
 if (!supabaseUrl || !serviceRoleKey) {
