@@ -266,11 +266,11 @@
       <h2>PANEL ADMIN</h2>
       <div class="adminLayout">
       <aside class="adminSidebar">
-        <button class="adminAccordionBtn" :class="{ activo: adminSeccionActiva === 'productos' }" @click="toggleSeccionAdmin('productos')">
-          Productos
-        </button>
         <button class="adminAccordionBtn" :class="{ activo: adminSeccionActiva === 'dashboard' }" @click="toggleSeccionAdmin('dashboard')">
           Dashboard
+        </button>
+        <button class="adminAccordionBtn" :class="{ activo: adminSeccionActiva === 'productos' }" @click="toggleSeccionAdmin('productos')">
+          Productos
         </button>
         <button class="adminAccordionBtn" :class="{ activo: adminSeccionActiva === 'usuarios' }" @click="toggleSeccionAdmin('usuarios')">
           Usuarios
@@ -278,10 +278,6 @@
       </aside>
 
       <main class="adminContent">
-      <div v-if="!adminSeccionActiva" class="adminVacio">
-        Selecciona una opción del menú de la izquierda.
-      </div>
-
       <section v-if="adminSeccionActiva === 'productos'" class="adminSection">
       <div class="adminForm">
         <input v-model="adminProducto.name" placeholder="Nombre del producto">
@@ -414,7 +410,7 @@
         </div>
         <div class="adminLista">
           <h3>Top productos por stock</h3>
-          <div class="chipsRecomendados">
+          <div class="adminTopStockGrid">
             <button v-for="p in masVendidos" :key="`dash-${p.id}`">{{ p.nombre }} ({{ p.stock }})</button>
           </div>
         </div>
@@ -2454,6 +2450,25 @@
     color: var(--brand-900);
     font-size: 20px;
   }
+  .adminTopStockGrid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 8px;
+    max-width: 540px;
+  }
+  .adminTopStockGrid button {
+    text-align: left;
+    border: 1px solid #d1d9e6;
+    background: #f8fafc;
+    color: #0f172a;
+    border-radius: 8px;
+    padding: 8px 10px;
+    font-size: 13px;
+    font-weight: 600;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
   .accionesCard {
     margin-top: 8px;
     display: flex;
@@ -2640,7 +2655,7 @@ export default {
       ejecutandoRefreshImagenes: false,
       subiendoImagenAdmin: false,
       editandoProductoId: null,
-      adminSeccionActiva: '',
+      adminSeccionActiva: 'dashboard',
       buscarProductoAdmin: '',
       filtroCategoriaAdmin: '',
       ordenProductoAdmin: 'nombre_asc',
@@ -2759,7 +2774,7 @@ export default {
     masVendidos() {
       return [...this.productos]
         .sort((a, b) => Number(b.stock || 0) - Number(a.stock || 0))
-        .slice(0, 5)
+        .slice(0, 6)
     },
     productosComparacion() {
       return this.productos.filter((p) => this.comparacionIds.includes(p.id))
@@ -3044,7 +3059,7 @@ export default {
     abrirPanelAdmin() {
       this.menuUser = false
       this.vista = 'adminProductos'
-      this.adminSeccionActiva = ''
+      this.adminSeccionActiva = 'dashboard'
     },
     async toggleSeccionAdmin(seccion) {
       if (this.adminSeccionActiva === seccion) {
