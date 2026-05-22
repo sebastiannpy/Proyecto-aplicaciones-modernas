@@ -13,6 +13,7 @@
 
       <div v-if="!carrito.length" class="carritoVacio">
         <p>Tu carrito está vacío</p>
+        <small>Agrega productos para continuar con tu compra.</small>
       </div>
 
       <div v-for="(p, idx) in carrito" :key="idx" class="itemCarrito">
@@ -21,7 +22,7 @@
 
         <div class="itemInfo">
           <h4>{{ p.nombre }}</h4>
-          <p v-if="p.noDisponible" style="color:#b00020; margin: 4px 0;">
+          <p v-if="p.noDisponible" class="itemWarning">
             Producto no disponible actualmente.
           </p>
 
@@ -61,7 +62,7 @@
         <strong>${{ total.toLocaleString() }}</strong>
       </div>
 
-      <p v-if="bloquearContinuar" style="color:#b00020; margin: 8px 0;">
+      <p v-if="bloquearContinuar" class="resumenWarning">
         Debes eliminar los productos no disponibles para continuar.
       </p>
 

@@ -49,13 +49,13 @@
 
         <label class="authLabel">Correo electrónico</label>
         <div class="authInputWrap">
-          <span>✉️</span>
+          <Mail class="authIcon" />
           <input v-model="correo" placeholder="tu_correo@ejemplo.com">
         </div>
 
         <label class="authLabel">Contraseña</label>
         <div class="authInputWrap">
-          <span>🔒</span>
+          <Lock class="authIcon" />
           <input type="password" v-model="password" placeholder="Tu contraseña">
         </div>
 
@@ -88,31 +88,31 @@
 
         <label class="authLabel">Nombre completo</label>
         <div class="authInputWrap">
-          <span>👤</span>
+          <User class="authIcon" />
           <input v-model="nombreRegistro" placeholder="Nombre completo">
         </div>
 
         <label class="authLabel">Teléfono</label>
         <div class="authInputWrap">
-          <span>📱</span>
+          <Phone class="authIcon" />
           <input v-model="telefonoRegistro" placeholder="Teléfono">
         </div>
 
         <label class="authLabel">Correo electrónico</label>
         <div class="authInputWrap">
-          <span>✉️</span>
+          <Mail class="authIcon" />
           <input v-model="correo" placeholder="tu_correo@ejemplo.com">
         </div>
 
         <label class="authLabel">Contraseña</label>
         <div class="authInputWrap">
-          <span>🔒</span>
+          <Lock class="authIcon" />
           <input type="password" v-model="password" placeholder="Contraseña">
         </div>
 
         <label class="authLabel">Confirmar contraseña</label>
         <div class="authInputWrap">
-          <span>✅</span>
+          <ShieldCheck class="authIcon" />
           <input type="password" v-model="confirmPassword" placeholder="Confirmar contraseña">
         </div>
 
@@ -328,12 +328,15 @@
       <div class="adminLayout">
       <aside class="adminSidebar">
         <button class="adminAccordionBtn" :class="{ activo: adminSeccionActiva === 'dashboard' }" @click="toggleSeccionAdmin('dashboard')">
+          <LayoutDashboard class="adminNavIcon" />
           Dashboard
         </button>
         <button class="adminAccordionBtn" :class="{ activo: adminSeccionActiva === 'productos' }" @click="toggleSeccionAdmin('productos')">
+          <Boxes class="adminNavIcon" />
           Productos
         </button>
         <button class="adminAccordionBtn" :class="{ activo: adminSeccionActiva === 'usuarios' }" @click="toggleSeccionAdmin('usuarios')">
+          <Users class="adminNavIcon" />
           Usuarios
         </button>
       </aside>
@@ -941,6 +944,28 @@
 
 
   <style scoped>
+  @import url('https://fonts.googleapis.com/css2?family=Manrope:wght@500;600;700;800&family=Sora:wght@600;700;800&display=swap');
+
+  :global(:root) {
+    --bg-soft: #f3f6fb;
+    --surface: #ffffff;
+    --text-main: #0f172a;
+    --text-soft: #475569;
+    --line-soft: #dbe3ef;
+    --brand-700: #1e3a8a;
+    --brand-900: #0b1220;
+  }
+
+  :global(body) {
+    font-family: 'Manrope', system-ui, -apple-system, Segoe UI, Roboto, sans-serif;
+    color: var(--text-main);
+    background: var(--bg-soft);
+  }
+
+  :global(h1), :global(h2), :global(h3), :global(h4) {
+    font-family: 'Sora', 'Manrope', sans-serif;
+    letter-spacing: -0.01em;
+  }
 
   .disabled {
     opacity: 0.5;
@@ -1300,6 +1325,12 @@
     color: #334155;
     font-size: 15px;
   }
+  .authIcon {
+    width: 16px;
+    height: 16px;
+    color: #334155;
+    stroke-width: 2.2;
+  }
   .authInputWrap input {
     border: none;
     background: transparent;
@@ -1411,6 +1442,9 @@
     cursor: pointer;
     text-align: left;
     transition: all 0.18s ease;
+    display: flex;
+    align-items: center;
+    gap: 8px;
   }
   .adminAccordionBtn:hover {
     border-color: #94a3b8;
@@ -2658,6 +2692,11 @@
     color: var(--brand-900);
     font-size: 20px;
   }
+  .adminNavIcon {
+    width: 16px;
+    height: 16px;
+    flex: 0 0 auto;
+  }
   .adminTopStockGrid {
     display: grid;
     grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -2766,6 +2805,7 @@
 <script>
 import DireccionView from '@/components/DireccionView.vue'
 import CarritoView from '@/components/CarritoView.vue'
+import { Boxes, LayoutDashboard, Lock, Mail, Phone, ShieldCheck, User, Users } from '@lucide/vue'
 import { supabase } from '@/supabase'
 import { actualizarProductoAdmin, bootstrapProductosAdmin, crearProductoAdmin, eliminarProductoAdmin, obtenerProductos, refrescarImagenesProductosAdmin, subirImagenProductoStorage } from '@/services/productosService'
 import { agregarItem, actualizarItem, eliminarItem, vaciarCarrito, obtenerCarrito } from '@/services/carritoService'
@@ -2776,7 +2816,7 @@ import { obtenerPedidos } from '@/services/pedidosService'
 import { obtenerResenasProducto, obtenerEstadoMiResena, guardarResena } from '@/services/resenasService'
 
 export default {
-  components: { CarritoView, DireccionView },
+  components: { CarritoView, DireccionView, LayoutDashboard, Boxes, Users, Mail, Lock, User, Phone, ShieldCheck },
 
   data() {
     return {
@@ -3082,7 +3122,18 @@ export default {
     },
     syncVistaAuthDesdeRuta() {
       const path = window.location.pathname.toLowerCase()
-      this.vista = this.vistaParaRuta(path)
+      const vistaRuta = this.vistaParaRuta(path)
+      if (vistaRuta === 'adminDashboard') {
+        this.vista = 'adminProductos'
+        this.adminSeccionActiva = 'dashboard'
+        return
+      }
+      if (vistaRuta === 'adminUsuarios') {
+        this.vista = 'adminProductos'
+        this.adminSeccionActiva = 'usuarios'
+        return
+      }
+      this.vista = vistaRuta
     },
     moverCardInicio(event) {
       const rect = event.currentTarget?.getBoundingClientRect?.()
@@ -3270,10 +3321,6 @@ export default {
       this.adminSeccionActiva = 'dashboard'
     },
     async toggleSeccionAdmin(seccion) {
-      if (this.adminSeccionActiva === seccion) {
-        this.adminSeccionActiva = ''
-        return
-      }
       this.adminSeccionActiva = seccion
       if (seccion === 'usuarios' && !this.usuariosAdmin.length) {
         await this.cargarUsuariosAdmin()
