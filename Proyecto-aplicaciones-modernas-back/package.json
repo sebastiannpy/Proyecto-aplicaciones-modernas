@@ -5,7 +5,9 @@
   "main": "index.js",
   "scripts": {
     "start": "node --env-file=.env index.js",
-    "dev": "node --watch --env-file=.env index.js"
+    "dev": "node --watch --env-file=.env index.js",
+    "fill:images": "node --env-file=.env services/fillProductImages.js",
+    "images:refresh-all": "node --env-file=.env services/refreshAllProductImages.js"
   },
   "keywords": [],
   "author": "",

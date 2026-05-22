@@ -8,6 +8,19 @@ const API_URL = `${API_BASE_URL}/api/products`
 
 const IMAGEN_DEFAULT = 'https://via.placeholder.com/900x600?text=Imagen+pendiente'
 
+const IMAGENES_POR_NOMBRE = [
+  { re: /(pastilla|freno|zapata|disco de freno)/i, url: 'https://res.cloudinary.com/db69rnqvy/image/upload/q_auto,f_auto,w_400/v1774496131/pastillas_br4ude.jpg' },
+  { re: /(bujia|bujía|encendido)/i, url: 'https://res.cloudinary.com/db69rnqvy/image/upload/q_auto,f_auto,w_400/v1774496115/bujia_vphaxm.jpg' },
+  { re: /(amortiguador|suspension|suspensión|strut)/i, url: 'https://res.cloudinary.com/db69rnqvy/image/upload/q_auto,f_auto,w_400/v1774496100/amortiguador_egqox4.jpg' },
+  { re: /(filtro de aire|filtro de aceite|filtro)/i, url: 'https://res.cloudinary.com/db69rnqvy/image/upload/q_auto,f_auto,w_400/v1774496084/filtro_udekev.jpg' },
+  { re: /(aceite|lubricante|atf|aditivo)/i, url: 'https://res.cloudinary.com/db69rnqvy/image/upload/q_auto,f_auto,w_400/v1774496056/aceite_kpo22t.jpg' },
+  { re: /(radiador)/i, url: 'https://res.cloudinary.com/db69rnqvy/image/upload/q_auto,f_auto,w_400/v1774495865/radiador_njswnj.jpg' },
+  { re: /(llanta|rin|neumatico|neumático)/i, url: 'https://res.cloudinary.com/db69rnqvy/image/upload/q_auto,f_auto,w_400/v1774496042/llanta_jhrwxh.jpg' },
+  { re: /(bateria|batería|12v)/i, url: 'https://res.cloudinary.com/db69rnqvy/image/upload/q_auto,f_auto,w_400/v1774496027/bateria_f009t4.jpg' },
+  { re: /(alternador|arranque|electrico|eléctrico)/i, url: 'https://res.cloudinary.com/db69rnqvy/image/upload/q_auto,f_auto,w_400/v1774495865/radiador_njswnj.jpg' },
+  { re: /(embrague|clutch)/i, url: 'https://res.cloudinary.com/dcbtxvffo/image/upload/q_auto,f_auto,w_400/v1776319996/a6e9fd179c1e1b8382d6bc419142c0cc_xqjrfz.jpg' },
+]
+
 const CATEGORIAS_CANONICAS = {
   frenos: 'Frenos',
   motor: 'Motor',
@@ -70,6 +83,12 @@ function construirImagenVisual(imageUrl, producto) {
   }
 }
 
+function imagenPorNombre(producto = {}) {
+  const nombre = `${producto?.name || ''} ${producto?.description || ''}`
+  const regla = IMAGENES_POR_NOMBRE.find((item) => item.re.test(nombre))
+  return regla?.url || null
+}
+
 // Mapea un producto del backend al formato del frontend
 function mapearProducto(p) {
   let categoria = normalizarCategoria(p.category)
@@ -78,6 +97,7 @@ function mapearProducto(p) {
   }
   const imagenOriginal = p.image_url || ''
   const imagenVisual = construirImagenVisual(imagenOriginal, p)
+  const imagenInferida = imagenPorNombre(p)
   return {
     id:          p.id,
     nombre:      p.name,
@@ -86,7 +106,7 @@ function mapearProducto(p) {
     marca:       p.brand,
     stock:       p.stock,
     descripcion: p.description || `${p.name} - ${p.brand}`,
-    imagen:      imagenVisual || IMAGEN_DEFAULT,
+    imagen:      imagenVisual || imagenInferida || IMAGEN_DEFAULT,
     imagenOriginal,
     etiqueta:    p.stock <= 5 ? 'ÚLTIMAS UNIDADES' : undefined,
   }

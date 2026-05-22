@@ -263,27 +263,26 @@
   <!-- ADMIN PRODUCTOS -->
   <div v-else-if="vista === 'adminProductos'" class="auth">
     <div class="cardAuth adminCard">
-      <h2>PANEL ADMIN - PRODUCTOS</h2>
-      <div class="adminNav">
-        <button class="btnSecundario" @click="abrirDashboardAdmin">Ir a dashboard</button>
-        <button class="btnSecundario" @click="abrirUsuariosAdmin">Gestionar usuarios</button>
+      <h2>PANEL ADMIN</h2>
+      <div class="adminLayout">
+      <aside class="adminSidebar">
+        <button class="adminAccordionBtn" :class="{ activo: adminSeccionActiva === 'productos' }" @click="toggleSeccionAdmin('productos')">
+          Productos
+        </button>
+        <button class="adminAccordionBtn" :class="{ activo: adminSeccionActiva === 'dashboard' }" @click="toggleSeccionAdmin('dashboard')">
+          Dashboard
+        </button>
+        <button class="adminAccordionBtn" :class="{ activo: adminSeccionActiva === 'usuarios' }" @click="toggleSeccionAdmin('usuarios')">
+          Usuarios
+        </button>
+      </aside>
+
+      <main class="adminContent">
+      <div v-if="!adminSeccionActiva" class="adminVacio">
+        Selecciona una opción del menú de la izquierda.
       </div>
 
-      <button
-        class="btnSecundario"
-        :disabled="ejecutandoBootstrapProductos"
-        @click="ejecutarBootstrapProductos"
-      >
-        {{ ejecutandoBootstrapProductos ? 'Cargando catálogo...' : 'Cargar catálogo base' }}
-      </button>
-      <button
-        class="btnSecundario"
-        :disabled="ejecutandoRefreshImagenes"
-        @click="ejecutarRefreshImagenesProductos"
-      >
-        {{ ejecutandoRefreshImagenes ? 'Actualizando imágenes...' : 'Refrescar imágenes de productos' }}
-      </button>
-
+      <section v-if="adminSeccionActiva === 'productos'" class="adminSection">
       <div class="adminForm">
         <input v-model="adminProducto.name" placeholder="Nombre del producto">
 
@@ -327,21 +326,41 @@
         </div>
         <textarea v-model="adminProducto.description" rows="3" placeholder="Descripción del producto"></textarea>
 
-        <button :disabled="guardandoAdminProducto" @click="guardarProductoDesdePanel">
-          {{ guardandoAdminProducto ? 'Guardando...' : (editandoProductoId ? 'Actualizar producto' : 'Guardar producto') }}
-        </button>
-        <button
-          v-if="editandoProductoId"
-          class="btnSecundario"
-          :disabled="guardandoAdminProducto"
-          @click="cancelarEdicionProducto"
-        >
-          Cancelar edición
-        </button>
+        <div class="adminFormActions">
+          <button :disabled="guardandoAdminProducto" @click="guardarProductoDesdePanel">
+            {{ guardandoAdminProducto ? 'Guardando...' : (editandoProductoId ? 'Actualizar producto' : 'Guardar producto') }}
+          </button>
+          <button
+            v-if="editandoProductoId"
+            class="btnSecundario"
+            :disabled="guardandoAdminProducto"
+            @click="cancelarEdicionProducto"
+          >
+            Cancelar edición
+          </button>
+        </div>
       </div>
 
       <div class="adminLista">
         <h3>Productos existentes</h3>
+        <div class="adminListaControles">
+          <input v-model="buscarProductoAdmin" placeholder="Buscar por nombre o marca">
+          <select v-model="filtroCategoriaAdmin">
+            <option value="">Todas las categorías</option>
+            <option v-for="c in categoriasDisponibles.filter(Boolean)" :key="`f-${c}`" :value="c">{{ c }}</option>
+          </select>
+          <select v-model="ordenProductoAdmin">
+            <option value="nombre_asc">Nombre A-Z</option>
+            <option value="nombre_desc">Nombre Z-A</option>
+            <option value="precio_asc">Precio menor a mayor</option>
+            <option value="precio_desc">Precio mayor a menor</option>
+          </select>
+        </div>
+        <label class="adminToggleTodos">
+          <input type="checkbox" v-model="mostrarTodosProductosAdmin">
+          Mostrar todos (todas las categorías)
+        </label>
+        <p class="adminConteo">Mostrando {{ productosAdminFiltrados.length }} producto(s)</p>
         <div v-if="!productos.length" class="adminVacio">No hay productos disponibles.</div>
         <div v-else class="tablaAdminWrap">
           <table class="tablaAdmin">
@@ -355,7 +374,7 @@
               </tr>
             </thead>
             <tbody>
-              <tr v-for="p in productos" :key="p.id">
+              <tr v-for="p in productosAdminFiltrados" :key="p.id">
                 <td>{{ p.nombre }}</td>
                 <td>{{ p.categoria }}</td>
                 <td>${{ Number(p.precio || 0).toLocaleString() }}</td>
@@ -365,9 +384,78 @@
                   <button class="btnEliminarAdmin" @click="eliminarProductoDesdeLista(p)">Eliminar</button>
                 </td>
               </tr>
+              <tr v-if="productosAdminFiltrados.length === 0">
+                <td colspan="5" class="adminVacio">Activa “Mostrar todos”, o escribe en buscar, o aplica un filtro.</td>
+              </tr>
             </tbody>
           </table>
         </div>
+      </div>
+      </section>
+
+      <section v-else-if="adminSeccionActiva === 'dashboard'" class="adminSection">
+        <div class="adminStatsGrid">
+          <div class="adminStatCard">
+            <small>Productos</small>
+            <strong>{{ adminMetricas.totalProductos }}</strong>
+          </div>
+          <div class="adminStatCard">
+            <small>Stock bajo (<=5)</small>
+            <strong>{{ adminMetricas.stockBajo }}</strong>
+          </div>
+          <div class="adminStatCard">
+            <small>Pedidos</small>
+            <strong>{{ adminMetricas.totalPedidos }}</strong>
+          </div>
+          <div class="adminStatCard">
+            <small>Ventas estimadas</small>
+            <strong>{{ formatPrecio(adminMetricas.ventasEstimadas) }}</strong>
+          </div>
+        </div>
+        <div class="adminLista">
+          <h3>Top productos por stock</h3>
+          <div class="chipsRecomendados">
+            <button v-for="p in masVendidos" :key="`dash-${p.id}`">{{ p.nombre }} ({{ p.stock }})</button>
+          </div>
+        </div>
+      </section>
+
+      <section v-else-if="adminSeccionActiva === 'usuarios'" class="adminSection">
+        <div class="adminForm">
+          <input v-model="buscarUsuarioAdmin" placeholder="Buscar por nombre o correo">
+          <button class="btnSecundario" :disabled="cargandoUsuariosAdmin" @click="cargarUsuariosAdmin">
+            {{ cargandoUsuariosAdmin ? 'Actualizando...' : 'Actualizar usuarios' }}
+          </button>
+        </div>
+        <div class="adminLista">
+          <h3>Usuarios registrados</h3>
+          <div v-if="cargandoUsuariosAdmin">Cargando usuarios...</div>
+          <div v-else-if="!usuariosAdminFiltrados.length" class="adminVacio">No se encontraron usuarios.</div>
+          <div v-else class="tablaAdminWrap">
+            <table class="tablaAdmin">
+              <thead>
+                <tr>
+                  <th>Nombre</th>
+                  <th>Correo</th>
+                  <th>Fecha</th>
+                  <th></th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr v-for="u in usuariosAdminFiltrados" :key="u.id">
+                  <td>{{ u.name || '—' }}</td>
+                  <td>{{ u.email || '—' }}</td>
+                  <td>{{ formatFecha(u.created_at) }}</td>
+                  <td class="accionesAdmin">
+                    <button class="btnEliminarAdmin" @click="eliminarUsuarioAdmin(u)">Eliminar</button>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+      </main>
       </div>
     </div>
   </div>
@@ -1073,8 +1161,8 @@
     align-items: stretch;
   }
   .adminCard {
-    width: 700px;
-    max-width: 94vw;
+    width: 1120px;
+    max-width: 98vw;
     align-items: stretch;
   }
   .adminNav {
@@ -1082,6 +1170,59 @@
     gap: 10px;
     flex-wrap: wrap;
     margin-bottom: 8px;
+  }
+  .adminLayout {
+    width: 100%;
+    display: grid;
+    grid-template-columns: 220px minmax(0, 1fr);
+    gap: 14px;
+    align-items: start;
+  }
+  .adminSidebar {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    position: sticky;
+    top: 12px;
+    background: #f8fafc;
+    border: 1px solid #e2e8f0;
+    border-radius: 12px;
+    padding: 10px;
+  }
+  .adminContent {
+    min-width: 0;
+  }
+  .adminSection {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+  }
+  .adminAccordionBtn {
+    border: 1px solid #d1d9e6;
+    background: #fff;
+    color: #0f172a;
+    border-radius: 8px;
+    padding: 11px 12px;
+    font-weight: 700;
+    cursor: pointer;
+    text-align: left;
+    transition: all 0.18s ease;
+  }
+  .adminAccordionBtn:hover {
+    border-color: #94a3b8;
+    background: #f1f5f9;
+  }
+  .adminAccordionBtn.activo {
+    background: #0f172a;
+    border-color: #0f172a;
+    color: #fff;
+    box-shadow: 0 8px 18px rgba(15, 23, 42, 0.18);
+  }
+  .adminToolbar {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 10px;
+    margin-bottom: 12px;
   }
   .adminForm {
     width: 100%;
@@ -1101,6 +1242,13 @@
     font-size: 15px;
     border: 1px solid #c7c7c7;
     border-radius: 6px;
+  }
+  .adminFormActions {
+    display: flex;
+    gap: 10px;
+    align-items: center;
+    flex-wrap: wrap;
+    margin-top: 4px;
   }
   .previewImagenAdmin {
     width: 100%;
@@ -1127,6 +1275,37 @@
     width: 100%;
     margin-top: 6px;
   }
+  .adminListaControles {
+    display: grid;
+    grid-template-columns: 1.2fr 1fr 1fr;
+    gap: 10px;
+    margin-bottom: 8px;
+    background: #f8fafc;
+    border: 1px solid #e2e8f0;
+    border-radius: 10px;
+    padding: 10px;
+  }
+  .adminListaControles input,
+  .adminListaControles select {
+    width: 100%;
+    padding: 10px 12px;
+    border: 1px solid #c7c7c7;
+    border-radius: 8px;
+    background: #fff;
+  }
+  .adminConteo {
+    margin: 0 0 8px;
+    color: #475569;
+    font-size: 13px;
+  }
+  .adminToggleTodos {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin: 2px 0 8px;
+    color: #334155;
+    font-size: 14px;
+  }
   .adminLista h3 {
     margin: 8px 0 10px;
   }
@@ -1144,6 +1323,22 @@
     border-radius: 8px;
     background: #fff;
   }
+  @media (max-width: 720px) {
+    .adminLayout {
+      grid-template-columns: 1fr;
+    }
+    .adminSidebar {
+      position: static;
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+    }
+    .adminToolbar {
+      grid-template-columns: 1fr;
+    }
+    .adminListaControles {
+      grid-template-columns: 1fr;
+    }
+  }
   .tablaAdmin {
     width: 100%;
     border-collapse: collapse;
@@ -1155,6 +1350,7 @@
     border-bottom: 1px solid #eee;
     text-align: left;
     font-size: 14px;
+    vertical-align: middle;
   }
   .tablaAdmin th {
     background: #f8fafc;
@@ -1168,12 +1364,13 @@
   }
   .btnEditarAdmin {
     border: 1px solid #cbd5e1;
-    background: #fff;
+    background: #f8fafc;
     color: #0f172a;
     border-radius: 8px;
-    padding: 6px 10px;
+    padding: 7px 12px;
     cursor: pointer;
     font-weight: 600;
+    min-width: 88px;
   }
   .btnEditarAdmin:hover {
     background: #f1f5f9;
@@ -2443,6 +2640,11 @@ export default {
       ejecutandoRefreshImagenes: false,
       subiendoImagenAdmin: false,
       editandoProductoId: null,
+      adminSeccionActiva: '',
+      buscarProductoAdmin: '',
+      filtroCategoriaAdmin: '',
+      ordenProductoAdmin: 'nombre_asc',
+      mostrarTodosProductosAdmin: false,
       usuariosAdmin: [],
       cargandoUsuariosAdmin: false,
       buscarUsuarioAdmin: '',
@@ -2577,6 +2779,26 @@ export default {
         (u.name || '').toLowerCase().includes(q) ||
         (u.email || '').toLowerCase().includes(q)
       )
+    },
+    productosAdminFiltrados() {
+      const q = (this.buscarProductoAdmin || '').toLowerCase().trim()
+      const hayFiltroCategoria = !!this.filtroCategoriaAdmin
+      const hayOrdenPersonalizado = this.ordenProductoAdmin !== 'nombre_asc'
+      const mostrarResultados = this.mostrarTodosProductosAdmin || !!q || hayFiltroCategoria || hayOrdenPersonalizado
+      if (!mostrarResultados) return []
+
+      let lista = this.productos.filter((p) => {
+        const matchTexto = !q || (p.nombre || '').toLowerCase().includes(q) || (p.marca || '').toLowerCase().includes(q)
+        const matchCategoria = !this.filtroCategoriaAdmin || p.categoria === this.filtroCategoriaAdmin
+        return matchTexto && matchCategoria
+      })
+
+      lista = [...lista]
+      if (this.ordenProductoAdmin === 'nombre_asc') lista.sort((a, b) => (a.nombre || '').localeCompare(b.nombre || '', 'es'))
+      if (this.ordenProductoAdmin === 'nombre_desc') lista.sort((a, b) => (b.nombre || '').localeCompare(a.nombre || '', 'es'))
+      if (this.ordenProductoAdmin === 'precio_asc') lista.sort((a, b) => Number(a.precio || 0) - Number(b.precio || 0))
+      if (this.ordenProductoAdmin === 'precio_desc') lista.sort((a, b) => Number(b.precio || 0) - Number(a.precio || 0))
+      return lista
     }
   },
 
@@ -2673,11 +2895,13 @@ export default {
     },
     abrirDashboardAdmin() {
       this.menuUser = false
-      this.vista = 'adminDashboard'
+      this.vista = 'adminProductos'
+      this.adminSeccionActiva = 'dashboard'
     },
     async abrirUsuariosAdmin() {
       this.menuUser = false
-      this.vista = 'adminUsuarios'
+      this.vista = 'adminProductos'
+      this.adminSeccionActiva = 'usuarios'
       if (!this.usuariosAdmin.length) {
         await this.cargarUsuariosAdmin()
       }
@@ -2782,30 +3006,24 @@ export default {
       })
     },
     toggleFiltros() {
-      const esMismoPanel = this.panelLateralActivo === 'filtros'
       this.panelLateralActivo = 'filtros'
-      this.showM = esMismoPanel ? !this.showM : true
-      if (this.showM) {
-        this.$nextTick(() => {
-          const el = this.$refs.panelCategorias
-          if (el && typeof el.scrollIntoView === 'function') {
-            el.scrollIntoView({ behavior: 'smooth', block: 'start' })
-          }
-        })
-      }
+      this.showM = true
+      this.$nextTick(() => {
+        const el = this.$refs.panelCategorias
+        if (el && typeof el.scrollIntoView === 'function') {
+          el.scrollIntoView({ behavior: 'smooth', block: 'start' })
+        }
+      })
     },
     toggleCategorias() {
-      const esMismoPanel = this.panelLateralActivo === 'categorias'
       this.panelLateralActivo = 'categorias'
-      this.showM = esMismoPanel ? !this.showM : true
-      if (this.showM) {
-        this.$nextTick(() => {
-          const el = this.$refs.panelCategorias
-          if (el && typeof el.scrollIntoView === 'function') {
-            el.scrollIntoView({ behavior: 'smooth', block: 'start' })
-          }
-        })
-      }
+      this.showM = true
+      this.$nextTick(() => {
+        const el = this.$refs.panelCategorias
+        if (el && typeof el.scrollIntoView === 'function') {
+          el.scrollIntoView({ behavior: 'smooth', block: 'start' })
+        }
+      })
     },
     limpiarFiltros() {
       this.filtroPrecioMin = null
@@ -2826,6 +3044,17 @@ export default {
     abrirPanelAdmin() {
       this.menuUser = false
       this.vista = 'adminProductos'
+      this.adminSeccionActiva = ''
+    },
+    async toggleSeccionAdmin(seccion) {
+      if (this.adminSeccionActiva === seccion) {
+        this.adminSeccionActiva = ''
+        return
+      }
+      this.adminSeccionActiva = seccion
+      if (seccion === 'usuarios' && !this.usuariosAdmin.length) {
+        await this.cargarUsuariosAdmin()
+      }
     },
     async cargarUsuariosAdmin() {
       if (!this.isAdmin) return
