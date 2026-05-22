@@ -30,37 +30,98 @@
   </div>
 
   <!-- LOGIN -->
-  <div v-else-if="vista === 'login'" class="auth">
-    <div class="cardAuth">
-      <h2>INICIAR SESION</h2>
+  <div v-else-if="vista === 'login'" class="auth authPremium">
+    <div class="authShell">
+      <section class="authPanel authInfoPanel">
+        <p class="authKicker">SERVICIO PREMIUM</p>
+        <h2>Accede a tu taller digital</h2>
+        <p>Gestiona tus compras, pedidos y seguimiento técnico en un solo lugar.</p>
+        <div class="authBadges">
+          <span>Pago protegido</span>
+          <span>Pedidos en tiempo real</span>
+          <span>Soporte experto</span>
+        </div>
+      </section>
 
-      <input v-model="correo" placeholder="Correo electrónico">
-      <input type="password" v-model="password" placeholder="Contraseña">
+      <section class="authPanel authFormPanel">
+        <h2>Iniciar sesión</h2>
+        <p class="authSubtitle">Ingresa con tu cuenta para continuar.</p>
 
-      <button @click="login">Entrar</button>
+        <label class="authLabel">Correo electrónico</label>
+        <div class="authInputWrap">
+          <span>✉️</span>
+          <input v-model="correo" placeholder="tu_correo@ejemplo.com">
+        </div>
 
-      <p @click="irARutaAuth('registro')" class="link">
-        ¿No tienes cuenta? Regístrate
-      </p>
+        <label class="authLabel">Contraseña</label>
+        <div class="authInputWrap">
+          <span>🔒</span>
+          <input type="password" v-model="password" placeholder="Tu contraseña">
+        </div>
+
+        <button class="authMainBtn" @click="login">Entrar</button>
+
+        <p @click="irARutaAuth('registro')" class="link authSwitchLink">
+          ¿No tienes cuenta? Regístrate
+        </p>
+      </section>
     </div>
   </div>
 
   <!-- REGISTRO -->
-  <div v-else-if="vista === 'registro'" class="auth">
-    <div class="cardAuth">
-      <h2>CREAR CUENTA</h2>
+  <div v-else-if="vista === 'registro'" class="auth authPremium">
+    <div class="authShell">
+      <section class="authPanel authInfoPanel">
+        <p class="authKicker">CUENTA NUEVA</p>
+        <h2>Únete y compra mejor</h2>
+        <p>Regístrate para guardar tus datos, acelerar compras y llevar historial de pedidos.</p>
+        <div class="authBadges">
+          <span>Registro rápido</span>
+          <span>Datos protegidos</span>
+          <span>Atención prioritaria</span>
+        </div>
+      </section>
 
-      <input v-model="nombreRegistro" placeholder="Nombre completo">
-      <input v-model="telefonoRegistro" placeholder="Teléfono">
-      <input v-model="correo" placeholder="Correo electrónico">
-      <input type="password" v-model="password" placeholder="Contraseña">
-      <input type="password" v-model="confirmPassword" placeholder="Confirmar contraseña">
+      <section class="authPanel authFormPanel">
+        <h2>Crear cuenta</h2>
+        <p class="authSubtitle">Completa tus datos para comenzar.</p>
 
-      <button @click="registro">Registrarse</button>
+        <label class="authLabel">Nombre completo</label>
+        <div class="authInputWrap">
+          <span>👤</span>
+          <input v-model="nombreRegistro" placeholder="Nombre completo">
+        </div>
 
-      <p @click="irARutaAuth('login')" class="link">
-        ¿Ya tienes cuenta? Inicia sesión
-      </p>
+        <label class="authLabel">Teléfono</label>
+        <div class="authInputWrap">
+          <span>📱</span>
+          <input v-model="telefonoRegistro" placeholder="Teléfono">
+        </div>
+
+        <label class="authLabel">Correo electrónico</label>
+        <div class="authInputWrap">
+          <span>✉️</span>
+          <input v-model="correo" placeholder="tu_correo@ejemplo.com">
+        </div>
+
+        <label class="authLabel">Contraseña</label>
+        <div class="authInputWrap">
+          <span>🔒</span>
+          <input type="password" v-model="password" placeholder="Contraseña">
+        </div>
+
+        <label class="authLabel">Confirmar contraseña</label>
+        <div class="authInputWrap">
+          <span>✅</span>
+          <input type="password" v-model="confirmPassword" placeholder="Confirmar contraseña">
+        </div>
+
+        <button class="authMainBtn" @click="registro">Registrarse</button>
+
+        <p @click="irARutaAuth('login')" class="link authSwitchLink">
+          ¿Ya tienes cuenta? Inicia sesión
+        </p>
+      </section>
     </div>
   </div>
 
@@ -1134,6 +1195,139 @@
     overflow-y: auto;
     padding: 24px 12px;
   }
+  .authPremium {
+    align-items: center;
+  }
+  .authShell {
+    width: min(1040px, 96vw);
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    border: 1px solid #dbe3ef;
+    border-radius: 22px;
+    overflow: hidden;
+    box-shadow: 0 30px 60px rgba(2, 6, 23, 0.2);
+    background: #fff;
+  }
+  .authPanel {
+    padding: 34px 30px;
+  }
+  .authInfoPanel {
+    color: #dbeafe;
+    background:
+      radial-gradient(circle at 20% 20%, rgba(59, 130, 246, 0.5), transparent 50%),
+      radial-gradient(circle at 80% 80%, rgba(16, 185, 129, 0.35), transparent 45%),
+      linear-gradient(140deg, #0b1220, #1e3a8a);
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    gap: 12px;
+  }
+  .authKicker {
+    margin: 0;
+    display: inline-block;
+    width: fit-content;
+    font-size: 11px;
+    font-weight: 800;
+    letter-spacing: 1px;
+    padding: 6px 10px;
+    border-radius: 999px;
+    background: rgba(255, 255, 255, 0.16);
+    border: 1px solid rgba(255, 255, 255, 0.26);
+  }
+  .authInfoPanel h2 {
+    margin: 0;
+    color: #f8fafc;
+    font-size: 30px;
+    line-height: 1.1;
+  }
+  .authInfoPanel p {
+    margin: 0;
+    color: #cbd5e1;
+    font-size: 15px;
+  }
+  .authBadges {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-top: 6px;
+  }
+  .authBadges span {
+    font-size: 12px;
+    font-weight: 700;
+    color: #e2e8f0;
+    border: 1px solid rgba(226, 232, 240, 0.35);
+    border-radius: 999px;
+    padding: 6px 10px;
+    background: rgba(15, 23, 42, 0.28);
+  }
+  .authFormPanel {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    background: #fff;
+  }
+  .authFormPanel h2 {
+    margin: 0;
+    color: #0f172a;
+    font-size: 28px;
+  }
+  .authSubtitle {
+    margin: 0 0 6px;
+    color: #475569;
+    font-size: 14px;
+  }
+  .authLabel {
+    font-size: 13px;
+    font-weight: 700;
+    color: #1e293b;
+  }
+  .authInputWrap {
+    display: grid;
+    grid-template-columns: 34px 1fr;
+    align-items: center;
+    border: 1px solid #d0dbe8;
+    border-radius: 10px;
+    background: #f8fafc;
+    padding: 0 10px;
+    transition: all 0.18s ease;
+  }
+  .authInputWrap:focus-within {
+    border-color: #3b82f6;
+    background: #fff;
+    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.15);
+  }
+  .authInputWrap span {
+    color: #334155;
+    font-size: 15px;
+  }
+  .authInputWrap input {
+    border: none;
+    background: transparent;
+    padding: 12px 0;
+    font-size: 14px;
+    outline: none;
+    width: 100%;
+  }
+  .authMainBtn {
+    margin-top: 8px;
+    border: 1px solid #0f172a;
+    border-radius: 10px;
+    background: linear-gradient(135deg, #0f172a, #1e293b);
+    color: #fff;
+    font-weight: 800;
+    font-size: 15px;
+    padding: 12px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+  }
+  .authMainBtn:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 14px 24px rgba(15, 23, 42, 0.25);
+  }
+  .authSwitchLink {
+    margin-top: 4px;
+    color: #334155;
+  }
 
   .cardAuth {
     display: flex;
@@ -1146,6 +1340,20 @@
     border-radius: 16px;
     width: 300px;
     margin: 0 auto;
+  }
+  @media (max-width: 900px) {
+    .authShell {
+      grid-template-columns: 1fr;
+    }
+    .authInfoPanel {
+      padding: 26px 24px;
+    }
+    .authFormPanel {
+      padding: 24px;
+    }
+    .authInfoPanel h2 {
+      font-size: 24px;
+    }
   }
   .pagoCard {
     width: 540px;
