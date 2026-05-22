@@ -1,8 +1,8 @@
 <template>
 
-  <div v-if="mostrarMensaje" class="mensaje" :style="{ background: mensajeColor }">
-    {{ mensaje }}
-  </div>
+  <Notivue v-slot="item">
+    <Notification :item="item" />
+  </Notivue>
 
   <!-- INICIO -->
   <div v-if="vista === 'inicio'" class="inicio">
@@ -453,7 +453,7 @@
       </div>
       </section>
 
-      <section v-else-if="adminSeccionActiva === 'dashboard'" class="adminSection">
+      <section v-else-if="adminSeccionActiva === 'dashboard'" class="adminSection" v-motion-slide-visible-once-bottom>
         <div class="adminStatsGrid">
           <div class="adminStatCard">
             <small>Productos</small>
@@ -471,6 +471,15 @@
             <small>Ventas estimadas</small>
             <strong>{{ formatPrecio(adminMetricas.ventasEstimadas) }}</strong>
           </div>
+        </div>
+        <div class="adminLista adminChartCard">
+          <h3>Stock por categoría</h3>
+          <apexchart
+            type="bar"
+            height="320"
+            :options="dashboardStockOptions"
+            :series="dashboardStockSeries"
+          />
         </div>
         <div class="adminLista">
           <h3>Top productos por stock</h3>
@@ -2716,6 +2725,18 @@
     overflow: hidden;
     text-overflow: ellipsis;
   }
+  .adminChartCard {
+    margin-top: 14px;
+  }
+  :global(.nv-notification) {
+    border-radius: 12px;
+    box-shadow: 0 12px 30px rgba(15, 23, 42, 0.22);
+    border: 1px solid rgba(203, 213, 225, 0.75);
+    backdrop-filter: blur(4px);
+  }
+  :global(.nv-notification-title) {
+    font-family: 'Sora', 'Manrope', sans-serif;
+  }
   .accionesCard {
     margin-top: 8px;
     display: flex;
@@ -2806,6 +2827,8 @@
 import DireccionView from '@/components/DireccionView.vue'
 import CarritoView from '@/components/CarritoView.vue'
 import { Boxes, LayoutDashboard, Lock, Mail, Phone, ShieldCheck, User, Users } from '@lucide/vue'
+import { Notification, Notivue, push } from 'notivue'
+import { defineAsyncComponent } from 'vue'
 import { supabase } from '@/supabase'
 import { actualizarProductoAdmin, bootstrapProductosAdmin, crearProductoAdmin, eliminarProductoAdmin, obtenerProductos, refrescarImagenesProductosAdmin, subirImagenProductoStorage } from '@/services/productosService'
 import { agregarItem, actualizarItem, eliminarItem, vaciarCarrito, obtenerCarrito } from '@/services/carritoService'
@@ -2816,7 +2839,21 @@ import { obtenerPedidos } from '@/services/pedidosService'
 import { obtenerResenasProducto, obtenerEstadoMiResena, guardarResena } from '@/services/resenasService'
 
 export default {
-  components: { CarritoView, DireccionView, LayoutDashboard, Boxes, Users, Mail, Lock, User, Phone, ShieldCheck },
+  components: {
+    CarritoView,
+    DireccionView,
+    LayoutDashboard,
+    Boxes,
+    Users,
+    Mail,
+    Lock,
+    User,
+    Phone,
+    ShieldCheck,
+    apexchart: defineAsyncComponent(() => import('vue3-apexcharts')),
+    Notivue,
+    Notification,
+  },
 
   data() {
     return {
@@ -3033,6 +3070,51 @@ export default {
         stockBajo: this.productos.filter((p) => Number(p.stock || 0) <= 5).length,
         totalPedidos: this.pedidos.length,
         ventasEstimadas: this.pedidos.reduce((acc, p) => acc + Number(p.total_amount || 0), 0),
+      }
+    },
+    stockPorCategoria() {
+      const resumen = this.productos.reduce((acc, p) => {
+        const categoria = p.categoria || 'Sin categoría'
+        acc[categoria] = (acc[categoria] || 0) + Number(p.stock || 0)
+        return acc
+      }, {})
+      return Object.entries(resumen)
+        .map(([categoria, stock]) => ({ categoria, stock }))
+        .sort((a, b) => b.stock - a.stock)
+        .slice(0, 8)
+    },
+    dashboardStockSeries() {
+      return [{
+        name: 'Stock',
+        data: this.stockPorCategoria.map((item) => item.stock),
+      }]
+    },
+    dashboardStockOptions() {
+      return {
+        chart: {
+          toolbar: { show: false },
+          foreColor: '#334155',
+        },
+        plotOptions: {
+          bar: { borderRadius: 6, columnWidth: '46%' },
+        },
+        xaxis: {
+          categories: this.stockPorCategoria.map((item) => item.categoria),
+          labels: { rotate: -20 },
+        },
+        yaxis: {
+          labels: {
+            formatter: (val) => Number(val).toLocaleString('es-CO'),
+          },
+        },
+        dataLabels: { enabled: false },
+        colors: ['#0f172a'],
+        grid: { borderColor: '#e2e8f0' },
+        tooltip: {
+          y: {
+            formatter: (val) => `${Number(val).toLocaleString('es-CO')} unidades`,
+          },
+        },
       }
     },
     usuariosAdminFiltrados() {
@@ -3521,6 +3603,8 @@ export default {
       this.mensajeColor = color
       this.mostrarMensaje = true
       setTimeout(() => { this.mostrarMensaje = false }, 2500)
+      if (color === 'green') push.success(msg)
+      else push.error(msg)
     },
 
     carritoStorageKey() {
