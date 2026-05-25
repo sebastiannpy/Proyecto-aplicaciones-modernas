@@ -65,9 +65,12 @@
       <p v-if="bloquearContinuar" class="resumenWarning">
         Debes eliminar los productos no disponibles para continuar.
       </p>
+      <p v-else-if="!carrito.length" class="resumenWarning">
+        Debes agregar al menos un producto para continuar.
+      </p>
 
       <!--  PASO A DIRECCIÓN  -->
-      <button class="btnComprar" :disabled="bloquearContinuar" @click="$emit('direccion')">
+      <button class="btnComprar" :disabled="bloquearContinuar || !carrito.length" @click="continuarDireccion">
         Continuar
       </button>
 
@@ -83,6 +86,12 @@ export default {
     carrito: Array,
     total: Number,
     bloquearContinuar: Boolean
+  },
+  methods: {
+    continuarDireccion() {
+      if (!this.carrito?.length || this.bloquearContinuar) return
+      this.$emit('direccion')
+    }
   }
 }
 </script>
