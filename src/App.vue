@@ -304,9 +304,9 @@
       </button>
 
       <p v-if="cargandoPedidos">Cargando pedidos...</p>
-      <p v-else-if="!pedidos.length">
-        No tienes pedidos registrados.
-      </p>
+      <div v-else-if="!pedidos.length" class="adminVacio">
+        No tienes pedidos registrados todavía. Cuando compres, aquí verás su estado.
+      </div>
 
       <div v-else class="listaPedidos">
         <div v-for="pedido in pedidos" :key="pedido.id" class="itemPedido">
@@ -485,6 +485,42 @@
           <h3>Top productos por stock</h3>
           <div class="adminTopStockGrid">
             <button v-for="p in masVendidos" :key="`dash-${p.id}`">{{ p.nombre }} ({{ p.stock }})</button>
+          </div>
+        </div>
+        <div class="adminDashGrid">
+          <div class="adminLista">
+            <h3>Alertas de stock bajo</h3>
+            <div v-if="!productosStockBajo.length" class="adminVacio">Sin alertas de stock.</div>
+            <div v-else class="adminAlertList">
+              <div v-for="p in productosStockBajo" :key="`low-${p.id}`" class="adminAlertItem">
+                <strong>{{ p.nombre }}</strong>
+                <span>{{ p.categoria }} · stock: {{ p.stock }}</span>
+              </div>
+            </div>
+          </div>
+          <div class="adminLista">
+            <h3>Pedidos recientes</h3>
+            <div v-if="!pedidosRecientes.length" class="adminVacio">Aún no hay pedidos para mostrar.</div>
+            <div v-else class="tablaAdminWrap">
+              <table class="tablaAdmin tablaCompacta">
+                <thead>
+                  <tr>
+                    <th># Pedido</th>
+                    <th>Estado</th>
+                    <th>Total</th>
+                    <th>Fecha</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr v-for="pedido in pedidosRecientes" :key="`rec-${pedido.id}`">
+                    <td>#{{ pedido.order_number || 'N/A' }}</td>
+                    <td><span class="estadoBadge">{{ pedido.status || 'pendiente' }}</span></td>
+                    <td>${{ Number(pedido.total_amount || 0).toLocaleString() }}</td>
+                    <td>{{ formatFecha(pedido.created_at) }}</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
           </div>
         </div>
       </section>
@@ -1435,6 +1471,7 @@
   }
   .adminContent {
     min-width: 0;
+    min-height: 65vh;
   }
   .adminSection {
     display: flex;
@@ -1583,6 +1620,9 @@
       grid-template-columns: 1fr;
     }
     .adminListaControles {
+      grid-template-columns: 1fr;
+    }
+    .adminDashGrid {
       grid-template-columns: 1fr;
     }
   }
@@ -2725,6 +2765,50 @@
     overflow: hidden;
     text-overflow: ellipsis;
   }
+  .adminDashGrid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 12px;
+    margin-top: 12px;
+  }
+  .adminAlertList {
+    display: grid;
+    gap: 8px;
+  }
+  .adminAlertItem {
+    border: 1px solid #e2e8f0;
+    border-left: 4px solid #be123c;
+    border-radius: 10px;
+    padding: 9px 10px;
+    background: #fff;
+    display: flex;
+    justify-content: space-between;
+    gap: 8px;
+    flex-wrap: wrap;
+  }
+  .adminAlertItem strong {
+    color: #0f172a;
+    font-size: 13px;
+  }
+  .adminAlertItem span {
+    color: #64748b;
+    font-size: 12px;
+  }
+  .tablaCompacta td, .tablaCompacta th {
+    font-size: 13px;
+    padding: 9px 10px;
+  }
+  .estadoBadge {
+    display: inline-block;
+    border: 1px solid #cbd5e1;
+    border-radius: 999px;
+    padding: 2px 8px;
+    font-size: 12px;
+    font-weight: 700;
+    color: #334155;
+    background: #f8fafc;
+    text-transform: capitalize;
+  }
   .adminChartCard {
     margin-top: 14px;
   }
@@ -3059,6 +3143,17 @@ export default {
     masVendidos() {
       return [...this.productos]
         .sort((a, b) => Number(b.stock || 0) - Number(a.stock || 0))
+        .slice(0, 6)
+    },
+    productosStockBajo() {
+      return [...this.productos]
+        .filter((p) => Number(p.stock || 0) > 0 && Number(p.stock || 0) <= 5)
+        .sort((a, b) => Number(a.stock || 0) - Number(b.stock || 0))
+        .slice(0, 6)
+    },
+    pedidosRecientes() {
+      return [...this.pedidos]
+        .sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime())
         .slice(0, 6)
     },
     productosComparacion() {
