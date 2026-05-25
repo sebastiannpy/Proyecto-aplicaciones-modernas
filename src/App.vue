@@ -326,21 +326,18 @@
     <div class="cardAuth adminCard">
       <h2>PANEL ADMIN</h2>
       <div class="adminLayout">
-      <aside class="adminSidebar" :class="{ colapsado: adminSidebarCollapsed }">
-        <button class="adminCollapseBtn" @click="adminSidebarCollapsed = !adminSidebarCollapsed">
-          {{ adminSidebarCollapsed ? 'Expandir menú' : 'Colapsar menú' }}
-        </button>
+      <aside class="adminSidebar">
         <button class="adminAccordionBtn" :class="{ activo: adminSeccionActiva === 'dashboard' }" @click="toggleSeccionAdmin('dashboard')">
           <LayoutDashboard class="adminNavIcon" />
-          <span v-if="!adminSidebarCollapsed">Dashboard</span>
+          <span>Dashboard</span>
         </button>
         <button class="adminAccordionBtn" :class="{ activo: adminSeccionActiva === 'productos' }" @click="toggleSeccionAdmin('productos')">
           <Boxes class="adminNavIcon" />
-          <span v-if="!adminSidebarCollapsed">Productos</span>
+          <span>Productos</span>
         </button>
         <button class="adminAccordionBtn" :class="{ activo: adminSeccionActiva === 'usuarios' }" @click="toggleSeccionAdmin('usuarios')">
           <Users class="adminNavIcon" />
-          <span v-if="!adminSidebarCollapsed">Usuarios</span>
+          <span>Usuarios</span>
         </button>
       </aside>
 
@@ -1489,20 +1486,6 @@
     border: 1px solid #e2e8f0;
     border-radius: 12px;
     padding: 10px;
-  }
-  .adminSidebar.colapsado {
-    width: 76px;
-    justify-self: start;
-  }
-  .adminCollapseBtn {
-    border: 1px solid #cbd5e1;
-    background: #fff;
-    color: #334155;
-    border-radius: 8px;
-    padding: 8px 10px;
-    font-size: 12px;
-    font-weight: 700;
-    cursor: pointer;
   }
   .adminContent {
     min-width: 0;
@@ -3094,7 +3077,6 @@ export default {
       subiendoImagenAdmin: false,
       editandoProductoId: null,
       adminSeccionActiva: 'dashboard',
-      adminSidebarCollapsed: false,
       buscarProductoAdmin: '',
       filtroCategoriaAdmin: '',
       ordenProductoAdmin: 'nombre_asc',
