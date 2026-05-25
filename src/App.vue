@@ -326,18 +326,21 @@
     <div class="cardAuth adminCard">
       <h2>PANEL ADMIN</h2>
       <div class="adminLayout">
-      <aside class="adminSidebar">
+      <aside class="adminSidebar" :class="{ colapsado: adminSidebarCollapsed }">
+        <button class="adminCollapseBtn" @click="adminSidebarCollapsed = !adminSidebarCollapsed">
+          {{ adminSidebarCollapsed ? 'Expandir menú' : 'Colapsar menú' }}
+        </button>
         <button class="adminAccordionBtn" :class="{ activo: adminSeccionActiva === 'dashboard' }" @click="toggleSeccionAdmin('dashboard')">
           <LayoutDashboard class="adminNavIcon" />
-          Dashboard
+          <span v-if="!adminSidebarCollapsed">Dashboard</span>
         </button>
         <button class="adminAccordionBtn" :class="{ activo: adminSeccionActiva === 'productos' }" @click="toggleSeccionAdmin('productos')">
           <Boxes class="adminNavIcon" />
-          Productos
+          <span v-if="!adminSidebarCollapsed">Productos</span>
         </button>
         <button class="adminAccordionBtn" :class="{ activo: adminSeccionActiva === 'usuarios' }" @click="toggleSeccionAdmin('usuarios')">
           <Users class="adminNavIcon" />
-          Usuarios
+          <span v-if="!adminSidebarCollapsed">Usuarios</span>
         </button>
       </aside>
 
@@ -421,6 +424,9 @@
           Mostrar todos (todas las categorías)
         </label>
         <p class="adminConteo">Mostrando {{ productosAdminFiltrados.length }} producto(s)</p>
+        <div v-if="cargando" class="adminSkeletonGrid">
+          <div v-for="n in 6" :key="`psk-${n}`" class="adminSkeletonLine"></div>
+        </div>
         <div v-if="!productos.length" class="adminVacio">No hay productos disponibles.</div>
         <div v-else class="tablaAdminWrap">
           <table class="tablaAdmin">
@@ -434,7 +440,7 @@
               </tr>
             </thead>
             <tbody>
-              <tr v-for="p in productosAdminFiltrados" :key="p.id">
+              <tr v-for="p in productosAdminPaginados" :key="p.id">
                 <td>{{ p.nombre }}</td>
                 <td>{{ p.categoria }}</td>
                 <td>${{ Number(p.precio || 0).toLocaleString() }}</td>
@@ -450,11 +456,19 @@
             </tbody>
           </table>
         </div>
+        <div v-if="productosAdminTotalPaginas > 1" class="adminPaginator">
+          <button class="btnSecundario" :disabled="adminProductosPagina === 1" @click="adminProductosPagina--">Anterior</button>
+          <span>Página {{ adminProductosPagina }} de {{ productosAdminTotalPaginas }}</span>
+          <button class="btnSecundario" :disabled="adminProductosPagina === productosAdminTotalPaginas" @click="adminProductosPagina++">Siguiente</button>
+        </div>
       </div>
       </section>
 
       <section v-else-if="adminSeccionActiva === 'dashboard'" class="adminSection" v-motion-slide-visible-once-bottom>
-        <div class="adminStatsGrid">
+        <div v-if="cargando" class="adminSkeletonGrid">
+          <div v-for="n in 4" :key="`dsk-${n}`" class="adminSkeletonCard"></div>
+        </div>
+        <div v-else class="adminStatsGrid">
           <div class="adminStatCard">
             <small>Productos</small>
             <strong>{{ adminMetricas.totalProductos }}</strong>
@@ -534,7 +548,9 @@
         </div>
         <div class="adminLista">
           <h3>Usuarios registrados</h3>
-          <div v-if="cargandoUsuariosAdmin">Cargando usuarios...</div>
+          <div v-if="cargandoUsuariosAdmin" class="adminSkeletonGrid">
+            <div v-for="n in 6" :key="`usk-${n}`" class="adminSkeletonLine"></div>
+          </div>
           <div v-else-if="!usuariosAdminFiltrados.length" class="adminVacio">No se encontraron usuarios.</div>
           <div v-else class="tablaAdminWrap">
             <table class="tablaAdmin">
@@ -547,7 +563,7 @@
                 </tr>
               </thead>
               <tbody>
-                <tr v-for="u in usuariosAdminFiltrados" :key="u.id">
+                <tr v-for="u in usuariosAdminPaginados" :key="u.id">
                   <td>{{ u.name || '—' }}</td>
                   <td>{{ u.email || '—' }}</td>
                   <td>{{ formatFecha(u.created_at) }}</td>
@@ -557,6 +573,11 @@
                 </tr>
               </tbody>
             </table>
+          </div>
+          <div v-if="usuariosAdminTotalPaginas > 1" class="adminPaginator">
+            <button class="btnSecundario" :disabled="adminUsuariosPagina === 1" @click="adminUsuariosPagina--">Anterior</button>
+            <span>Página {{ adminUsuariosPagina }} de {{ usuariosAdminTotalPaginas }}</span>
+            <button class="btnSecundario" :disabled="adminUsuariosPagina === usuariosAdminTotalPaginas" @click="adminUsuariosPagina++">Siguiente</button>
           </div>
         </div>
       </section>
@@ -1468,6 +1489,20 @@
     border: 1px solid #e2e8f0;
     border-radius: 12px;
     padding: 10px;
+  }
+  .adminSidebar.colapsado {
+    width: 76px;
+    justify-self: start;
+  }
+  .adminCollapseBtn {
+    border: 1px solid #cbd5e1;
+    background: #fff;
+    color: #334155;
+    border-radius: 8px;
+    padding: 8px 10px;
+    font-size: 12px;
+    font-weight: 700;
+    cursor: pointer;
   }
   .adminContent {
     min-width: 0;
@@ -2812,6 +2847,40 @@
   .adminChartCard {
     margin-top: 14px;
   }
+  .adminSkeletonGrid {
+    display: grid;
+    gap: 8px;
+    margin: 6px 0 10px;
+  }
+  .adminSkeletonLine,
+  .adminSkeletonCard {
+    border-radius: 10px;
+    background: linear-gradient(90deg, #e2e8f0 25%, #f1f5f9 37%, #e2e8f0 63%);
+    background-size: 400% 100%;
+    animation: shimmer 1.2s ease infinite;
+  }
+  .adminSkeletonLine {
+    height: 38px;
+  }
+  .adminSkeletonCard {
+    height: 78px;
+  }
+  .adminPaginator {
+    margin-top: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 10px;
+  }
+  .adminPaginator span {
+    color: #475569;
+    font-size: 13px;
+    font-weight: 700;
+  }
+  @keyframes shimmer {
+    0% { background-position: 100% 0; }
+    100% { background-position: 0 0; }
+  }
   :global(.nv-notification) {
     border-radius: 12px;
     box-shadow: 0 12px 30px rgba(15, 23, 42, 0.22);
@@ -3025,10 +3094,14 @@ export default {
       subiendoImagenAdmin: false,
       editandoProductoId: null,
       adminSeccionActiva: 'dashboard',
+      adminSidebarCollapsed: false,
       buscarProductoAdmin: '',
       filtroCategoriaAdmin: '',
       ordenProductoAdmin: 'nombre_asc',
       mostrarTodosProductosAdmin: false,
+      adminProductosPagina: 1,
+      adminUsuariosPagina: 1,
+      adminItemsPorPagina: 8,
       usuariosAdmin: [],
       cargandoUsuariosAdmin: false,
       buscarUsuarioAdmin: '',
@@ -3239,12 +3312,51 @@ export default {
       if (this.ordenProductoAdmin === 'precio_asc') lista.sort((a, b) => Number(a.precio || 0) - Number(b.precio || 0))
       if (this.ordenProductoAdmin === 'precio_desc') lista.sort((a, b) => Number(b.precio || 0) - Number(a.precio || 0))
       return lista
+    },
+    productosAdminTotalPaginas() {
+      return Math.max(1, Math.ceil(this.productosAdminFiltrados.length / this.adminItemsPorPagina))
+    },
+    productosAdminPaginados() {
+      const inicio = (this.adminProductosPagina - 1) * this.adminItemsPorPagina
+      return this.productosAdminFiltrados.slice(inicio, inicio + this.adminItemsPorPagina)
+    },
+    usuariosAdminTotalPaginas() {
+      return Math.max(1, Math.ceil(this.usuariosAdminFiltrados.length / this.adminItemsPorPagina))
+    },
+    usuariosAdminPaginados() {
+      const inicio = (this.adminUsuariosPagina - 1) * this.adminItemsPorPagina
+      return this.usuariosAdminFiltrados.slice(inicio, inicio + this.adminItemsPorPagina)
     }
   },
 
   watch: {
     vista(newVista) {
       this.syncRutaDesdeVista(newVista)
+    },
+    buscarProductoAdmin() {
+      this.adminProductosPagina = 1
+    },
+    filtroCategoriaAdmin() {
+      this.adminProductosPagina = 1
+    },
+    ordenProductoAdmin() {
+      this.adminProductosPagina = 1
+    },
+    mostrarTodosProductosAdmin() {
+      this.adminProductosPagina = 1
+    },
+    buscarUsuarioAdmin() {
+      this.adminUsuariosPagina = 1
+    },
+    adminSeccionActiva() {
+      this.adminProductosPagina = 1
+      this.adminUsuariosPagina = 1
+    },
+    productosAdminTotalPaginas(newVal) {
+      if (this.adminProductosPagina > newVal) this.adminProductosPagina = newVal
+    },
+    usuariosAdminTotalPaginas(newVal) {
+      if (this.adminUsuariosPagina > newVal) this.adminUsuariosPagina = newVal
     },
   },
 
