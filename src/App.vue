@@ -143,7 +143,7 @@
       @decrementar="decrementarItem($event)"
       @eliminar="eliminarItemCarrito($event)"
       @login="irAVista('login')"
-      @direccion="irAVista('direccion')"
+      @direccion="irADireccionDesdeCarrito"
     />
   </div>
 
@@ -3404,7 +3404,19 @@ export default {
         this.adminSeccionActiva = 'usuarios'
         return
       }
+      if ((vistaRuta === 'direccion' || vistaRuta === 'pago') && !this.carrito.length) {
+        this.vista = 'carrito'
+        this.mostrar('Debes agregar al menos un producto para continuar', 'red')
+        return
+      }
       this.vista = vistaRuta
+    },
+    irADireccionDesdeCarrito() {
+      if (!this.carrito.length) {
+        this.mostrar('Debes agregar al menos un producto para continuar', 'red')
+        return
+      }
+      this.irAVista('direccion')
     },
     moverCardInicio(event) {
       const rect = event.currentTarget?.getBoundingClientRect?.()
@@ -4195,6 +4207,11 @@ export default {
     },
 
     async irAPago() {
+      if (!this.carrito.length) {
+        this.mostrar('Debes agregar al menos un producto para continuar', 'red')
+        this.vista = 'carrito'
+        return
+      }
       if (!this.direccionValida) {
         this.mostrar('Debes validar la dirección primero')
         return
@@ -4234,6 +4251,11 @@ export default {
     },
 
     async confirmarCompraConPago() {
+      if (!this.carrito.length) {
+        this.mostrar('Debes agregar al menos un producto para continuar', 'red')
+        this.vista = 'carrito'
+        return
+      }
       await this.calcularTiempoEntrega(true)
       const errorLocal = this.validarPagoLocal()
       if (errorLocal) {
